@@ -4,13 +4,13 @@ import { trpc } from '../utils/trpc'
 
 type Props = {
   pokemon: Pokemon
-  setPokemons: React.Dispatch<React.SetStateAction<Pokemon[]>>
+  refreshRandomPokemons: () => void
 }
 
-const PokemonCard = ({ pokemon, setPokemons }: Props) => {
+const PokemonCard = ({ pokemon, refreshRandomPokemons }: Props) => {
   const voteForPokemon = trpc.pokemons.voteForPokemon.useMutation({
     onSuccess: () => {
-      setPokemons([])
+      refreshRandomPokemons()
     }
   })
 

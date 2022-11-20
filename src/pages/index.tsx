@@ -11,22 +11,24 @@ import PokemonCard from '../components/pokemon-card'
 
 export type Pokemon = z.infer<typeof pokemonSchema>
 
-const Home: NextPage = () => {
-  const [pokemons, setPokemons] = useState<Pokemon[]>([])
+const randomNumber = () => Math.floor(Math.random() * 100) + 1
 
-  const randomPokemon = trpc.pokemons.getRandomPokemon.useQuery(undefined, {
-    onSuccess: data => {
-      if (pokemons.length === 0) {
-        setPokemons([data])
-      } else if (pokemons.length === 1) {
-        setPokemons(prev => [...prev, data])
-      }
-    }
-  })
+const Home: NextPage = () => {
+  const [randomId1, setRandomId1] = useState(() => randomNumber())
+  const [randomId2, setRandomId2] = useState(() => randomNumber())
+
+  const randomPokemon1 = trpc.pokemons.getById.useQuery(randomId1,{keepPreviousData: true})
+  const randomPokemon2 = trpc.pokemons.getById.useQuery(randomId2,{keepPreviousData: true})
+
+  const refreshRandomPokemons = () => {
+    setRandomId1(randomNumber())
+    setRandomId2(randomNumber())
+  }
 
   useEffect(() => {
-    if (pokemons.length < 2) randomPokemon.refetch()
-  }, [pokemons])
+    randomPokemon1.refetch()
+    randomPokemon2.refetch()
+  }, [randomId1, randomId2])
 
   return (
     <>
@@ -41,9 +43,18 @@ const Home: NextPage = () => {
             Vote For <span className='text-[hsl(280,100%,70%)]'>The Most Beautiful</span> Pokemon
           </h1>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8'>
-            {pokemons.map(pokemon => (
-              <PokemonCard key={pokemon.id} pokemon={pokemon} setPokemons={setPokemons}/>
-            ))}
+            {randomPokemon1.data && randomPokemon2.data && (
+              <>
+                <PokemonCard
+                  pokemon={randomPokemon1.data}
+                  refreshRandomPokemons={refreshRandomPokemons}
+                />
+                <PokemonCard
+                  pokemon={randomPokemon2.data}
+                  refreshRandomPokemons={refreshRandomPokemons}
+                />
+              </>
+            )}
           </div>
 
           <div className='flex flex-col items-center gap-2'>
