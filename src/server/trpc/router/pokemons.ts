@@ -5,7 +5,8 @@ import { TRPCError } from '@trpc/server'
 export const pokemonSchema = z.object({
   id: z.number(),
   name: z.string(),
-  imgUrl: z.string().url()
+  imgUrl: z.string().url(),
+  votes: z.number().optional(),
 })
 
 export const pokemonRouter = router({

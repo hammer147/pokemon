@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { pokemonSchema } from '../server/trpc/router/pokemons'
 import { z } from 'zod'
 import PokemonCard from '../components/pokemon-card'
+import Link from 'next/link'
 
 export type Pokemon = z.infer<typeof pokemonSchema>
 
@@ -17,8 +18,8 @@ const Home: NextPage = () => {
   const [randomId1, setRandomId1] = useState(() => randomNumber())
   const [randomId2, setRandomId2] = useState(() => randomNumber())
 
-  const randomPokemon1 = trpc.pokemons.getById.useQuery(randomId1,{keepPreviousData: true})
-  const randomPokemon2 = trpc.pokemons.getById.useQuery(randomId2,{keepPreviousData: true})
+  const randomPokemon1 = trpc.pokemons.getById.useQuery(randomId1, { keepPreviousData: true })
+  const randomPokemon2 = trpc.pokemons.getById.useQuery(randomId2, { keepPreviousData: true })
 
   const refreshRandomPokemons = () => {
     setRandomId1(randomNumber())
@@ -30,6 +31,16 @@ const Home: NextPage = () => {
     randomPokemon2.refetch()
   }, [randomId1, randomId2])
 
+  const voteForPokemon = trpc.pokemons.voteForPokemon.useMutation({
+    onSuccess: () => {
+      refreshRandomPokemons()
+    }
+  })
+
+  const vote = (pokemon: Pokemon) => {
+    voteForPokemon.mutate(pokemon)
+  }
+
   return (
     <>
       <Head>
@@ -39,22 +50,21 @@ const Home: NextPage = () => {
       </Head>
       <main className='flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]'>
         <div className='container flex flex-col items-center justify-center gap-12 px-4 py-16 '>
-          <h1 className='text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]'>
+          <h1 className='text-center text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]'>
             Vote For <span className='text-[hsl(280,100%,70%)]'>The Most Beautiful</span> Pokemon
           </h1>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8'>
             {randomPokemon1.data && randomPokemon2.data && (
               <>
-                <PokemonCard
-                  pokemon={randomPokemon1.data}
-                  refreshRandomPokemons={refreshRandomPokemons}
-                />
-                <PokemonCard
-                  pokemon={randomPokemon2.data}
-                  refreshRandomPokemons={refreshRandomPokemons}
-                />
+                <PokemonCard pokemon={randomPokemon1.data} clickHandler={vote} />
+                <PokemonCard pokemon={randomPokemon2.data} clickHandler={vote} />
               </>
             )}
+          </div>
+          <div className='flex flex-col items-center justify-center gap-4'>
+            <button className='rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20'>
+              <Link href='/leaderboard'>Leaderboard</Link>
+            </button>
           </div>
 
           <div className='flex flex-col items-center gap-2'>
